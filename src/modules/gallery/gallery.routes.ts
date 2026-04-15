@@ -4,7 +4,6 @@ import { authMiddleware } from '../common/middleware/auth.middleware';
 import { validate } from '../common/middleware/validate.middleware';
 import { createGalleryItemSchema, updateGalleryItemSchema } from './gallery.schema';
 import { upload } from '../uploads/upload.middleware';
-import { originMiddleware } from '../common/middleware/origin.middleware';
 import { tokenMiddleware } from '../common/middleware/token.middleware';
 
 const router = Router();
@@ -21,7 +20,7 @@ router.get('/', tokenMiddleware, galleryController.getAllGalleryItems);
 router.get('/:id', tokenMiddleware, galleryController.getGalleryItemById);
 
 // All mutation routes require authentication
-// router.use(authMiddleware);
+router.use(authMiddleware);
 
 // Create new gallery item
 router.post(

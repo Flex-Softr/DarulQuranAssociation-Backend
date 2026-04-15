@@ -119,7 +119,6 @@ export class UserController {
    */
   updateUser = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     const { id } = req.params;
-    console.log(req.params);
     const { fullName, email, role, phone } = req.body;
     
     // Prevent self-deletion check is not needed for update, but we can add other validations

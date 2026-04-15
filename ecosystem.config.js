@@ -32,8 +32,10 @@ module.exports = {
       
       // Auto restart on crash
       autorestart: true,
-      max_restarts: 10,
-      min_uptime: '10s',
+      max_restarts: 20,
+      min_uptime: '30s',
+      restart_delay: 5000,
+      exp_backoff_restart_delay: 200,
       
       // Memory management
       max_memory_restart: '500M',
@@ -42,8 +44,8 @@ module.exports = {
       watch: false,
       
       // Graceful shutdown
-      kill_timeout: 5000,
-      wait_ready: true,
+      kill_timeout: 10000,
+      wait_ready: false,
       listen_timeout: 10000,
       
       // Environment variables (override with .env file)

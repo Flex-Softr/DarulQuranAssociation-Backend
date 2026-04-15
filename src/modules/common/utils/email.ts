@@ -33,8 +33,8 @@ const getTransporter = () => {
       pass: config.smtp.password,
     },
     tls: {
-      // Do not fail on invalid certs
-      rejectUnauthorized: false,
+      // Enforce TLS certificate validation
+      rejectUnauthorized: true,
     },
   });
 };

@@ -9,12 +9,47 @@ import { getFileUrl } from '../uploads/upload.middleware';
 import { config } from '../../config';
 import { GetMemberApplicationsQueryInput } from './member.schema';
 import { logger } from '../common/utils/logger';
+import axios from 'axios';
 const SSLCommerzPayment = require("sslcommerz-lts");
 import mongoose from 'mongoose';
 import { MemberPaymentStatus } from './member.model';
 
 
 export class MemberController {
+  private async validatePaymentCallback(
+    valId: string | undefined,
+    tranId: string
+  ): Promise<void> {
+    if (!valId) {
+      throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'Payment validation token is missing');
+    }
+
+    let validationData: { status?: string; tran_id?: string };
+    try {
+      const { data } = await axios.get(config.sslcommerz.endpoints.validate, {
+        params: {
+          val_id: valId,
+          store_id: config.sslcommerz.storeId,
+          store_passwd: config.sslcommerz.storePassword,
+          format: 'json',
+        },
+        timeout: 15000,
+      });
+      validationData = data;
+    } catch {
+      throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'Unable to validate payment callback');
+    }
+
+    const status = validationData?.status || '';
+    if (!['VALID', 'VALIDATED'].includes(status)) {
+      throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'Payment callback validation failed');
+    }
+
+    if (validationData.tran_id !== tranId) {
+      throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'Transaction mismatch in callback');
+    }
+  }
+
   getMemberApplications = asyncHandler(async (req: Request, res: Response) => {
     const query = req.query as GetMemberApplicationsQueryInput;
     const result = await memberService.getMemberApplications(
@@ -49,7 +84,6 @@ export class MemberController {
   });
 
   initiatePayment = asyncHandler(async (req: Request, res: Response) => {
-    console.log("req.body", req.body);
     const {  amount, name, mobile, type  } = req.body;
 
     if (!name || !mobile || !amount) {
@@ -93,7 +127,7 @@ export class MemberController {
       
       // Check for SSLCommerz errors
       if (apiResponse.status === 'FAILED' || apiResponse.failedreason) {
-        console.error('SSLCommerz Error:', apiResponse);
+        logger.error('SSLCommerz Error', apiResponse);
         throw new ApiError(
           HTTP_STATUS.BAD_REQUEST,
           apiResponse.failedreason || 'Payment gateway initialization failed. Please check your SSLCommerz credentials.'
@@ -115,7 +149,7 @@ export class MemberController {
   
       throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'Failed to create payment session');
     } catch (err: any) {
-      console.error("SSLCOMMERZ ERROR:", err);
+      logger.error('SSLCOMMERZ ERROR', err);
       
       // If it's already an ApiError, rethrow it
       if (err instanceof ApiError) {
@@ -139,11 +173,13 @@ export class MemberController {
 
   /** ------------------ PAYMENT SUCCESS CALLBACK ------------------ **/
   sslSuccess = asyncHandler(async (req: Request, res: Response) => {
-    const { tran_id } = req.body;
+    const { tran_id, val_id } = req.body;
     
     if (!tran_id) {
       throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'Transaction ID is required');
     }
+
+    await this.validatePaymentCallback(val_id, tran_id);
 
     // Update donation status by tran_id
     await memberService.updateMember(tran_id, {paymentStatus: "completed"} );
@@ -173,7 +209,13 @@ export class MemberController {
 
   /** ------------------ PAYMENT FAIL CALLBACK ------------------ **/
   sslFail = asyncHandler(async (req: Request, res: Response) => {
-    const { tran_id } = req.body;
+    const { tran_id, val_id } = req.body;
+
+    if (!tran_id) {
+      throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'Transaction ID is required');
+    }
+
+    await this.validatePaymentCallback(val_id, tran_id);
 
     // Update donation status
     await memberService.updateMember(tran_id, { paymentStatus: "failed" });
@@ -201,7 +243,13 @@ export class MemberController {
 
   /** ------------------ PAYMENT CANCEL CALLBACK ------------------ **/
   sslCancel = asyncHandler(async (req: Request, res: Response) => {
-    const { tran_id } = req.body;
+    const { tran_id, val_id } = req.body;
+
+    if (!tran_id) {
+      throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'Transaction ID is required');
+    }
+
+    await this.validatePaymentCallback(val_id, tran_id);
 
     // Update donation status
     await memberService.updateMember(tran_id, { paymentStatus: "cancel" });

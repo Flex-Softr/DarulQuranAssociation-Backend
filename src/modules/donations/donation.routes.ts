@@ -1,8 +1,10 @@
 import { Router } from 'express';
 import { donationController } from './donation.controller';
 import { authMiddleware } from '../common/middleware/auth.middleware';
+import { roleMiddleware } from '../common/middleware/role.middleware';
 import { validate } from '../common/middleware/validate.middleware';
 import { createDonationSchema } from './donation.schema';
+import { ROLES } from '../../constants';
 
 const router = Router();
 
@@ -19,6 +21,9 @@ router.use(authMiddleware);
 
 // My donations (authenticated user)
 router.get('/my', donationController.getMyDonations);
+
+// Admin-only donation access
+router.use(roleMiddleware(ROLES.ADMIN));
 
 // Get all donations (admin only)
 router.get('/', donationController.getAllDonations);

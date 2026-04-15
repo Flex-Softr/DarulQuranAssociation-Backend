@@ -6,16 +6,6 @@ import { config } from '../../../config';
 const normalizeOrigin = (value: string) => value.trim().replace(/\/+$/, '');
 
 /**
- * SSLCommerz domains that should be allowed for payment callbacks
- */
-const SSLCOMMERZ_DOMAINS = [
-  'https://sandbox.sslcommerz.com',
-  'https://securepay.sslcommerz.com',
-  'http://sandbox.sslcommerz.com',
-  'http://securepay.sslcommerz.com',
-];
-
-/**
  * Check if a path is a payment callback route
  */
 const isPaymentCallbackRoute = (path: string): boolean => {
@@ -46,20 +36,14 @@ const standardCorsMiddleware = cors({
     origin: string | undefined,
     callback: (err: Error | null, allow?: boolean) => void
   ) => {
-    // Allow requests with no origin (like mobile apps, Postman, form POSTs from SSLCommerz)
-    // This is important because SSLCommerz form POSTs may not send an Origin header
+    // Allow requests with no origin (mobile apps, Postman, server-to-server).
+    // Payment callback routes are already handled by paymentCallbackCorsMiddleware.
     if (!origin) {
       return callback(null, true);
     }
 
     // Allow all origins in development (when CORS_ORIGIN is '*')
     if (config.cors.origin.includes('*')) {
-      return callback(null, true);
-    }
-
-    // Allow SSLCommerz domains for payment callbacks
-    // Check if origin contains sslcommerz (more flexible matching)
-    if (origin.includes('sslcommerz.com')) {
       return callback(null, true);
     }
 
@@ -107,6 +91,6 @@ export const paymentCallbackCors = cors({
   origin: true, // Allow all origins for payment callbacks
   credentials: false, // No credentials needed for payment callbacks
   methods: ['POST', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Content-Type'],
+  allowedHeaders: ['Content-Type'],
 });
 

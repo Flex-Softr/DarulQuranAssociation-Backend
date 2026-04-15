@@ -3,6 +3,19 @@ import { connectDB } from './db';
 import { config } from './config';
 import { logger } from './modules/common/utils/logger';
 
+let isShuttingDown = false;
+
+const registerGlobalErrorHandlers = (): void => {
+  process.on('unhandledRejection', (reason) => {
+    logger.error('Unhandled Promise Rejection:', reason);
+  });
+
+  process.on('uncaughtException', (error) => {
+    logger.error('Uncaught Exception:', error);
+    process.exit(1);
+  });
+};
+
 /**
  * Start server
  * Connects to database and starts Express server
@@ -19,19 +32,36 @@ const startServer = async (): Promise<void> => {
       logger.info(`🏥 Health check: http://localhost:${config.port}/health`);
     });
 
-    // Graceful shutdown
-    process.on('SIGTERM', () => {
-      logger.info('SIGTERM signal received: closing HTTP server');
+    const gracefulShutdown = (signal: string): void => {
+      if (isShuttingDown) {
+        return;
+      }
+
+      isShuttingDown = true;
+      logger.info(`${signal} signal received: closing HTTP server`);
+
+      // Ensure process exits even if some requests never complete.
+      const forceCloseTimeout = setTimeout(() => {
+        logger.error('Forcing shutdown after timeout');
+        process.exit(1);
+      }, 10000);
+
       server.close(() => {
+        clearTimeout(forceCloseTimeout);
         logger.info('HTTP server closed');
         process.exit(0);
       });
-    });
+    };
+
+    process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+    process.on('SIGINT', () => gracefulShutdown('SIGINT'));
   } catch (error) {
     logger.error('Failed to start server:', error);
     process.exit(1);
   }
 };
+
+registerGlobalErrorHandlers();
 
 // Start the server
 startServer();

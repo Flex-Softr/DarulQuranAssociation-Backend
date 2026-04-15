@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { ApiError } from './error.middleware';
 import { HTTP_STATUS } from '../../../constants';
+import crypto from 'crypto';
 
 /**
  * Simple token validation middleware
@@ -41,8 +42,14 @@ export const tokenMiddleware = (
       );
     }
 
-    // Compare tokens (use constant-time comparison to prevent timing attacks)
-    if (token !== expectedToken) {
+    // Compare tokens with constant-time comparison to reduce timing attack surface
+    const tokenBuffer = Buffer.from(token);
+    const expectedBuffer = Buffer.from(expectedToken);
+    const isValidToken =
+      tokenBuffer.length === expectedBuffer.length &&
+      crypto.timingSafeEqual(tokenBuffer, expectedBuffer);
+
+    if (!isValidToken) {
       throw new ApiError(HTTP_STATUS.UNAUTHORIZED, 'Invalid token');
     }
 

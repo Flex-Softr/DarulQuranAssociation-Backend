@@ -86,8 +86,8 @@ export const originMiddleware = (
           const allowedUrl = new URL(allowed);
           return allowedUrl.origin === refererOrigin;
         } catch {
-          // If allowed is not a full URL, do simple string matching
-          return allowed === refererOrigin || refererOrigin.includes(allowed);
+          // If allowed is not a full URL, use strict equality
+          return allowed === refererOrigin;
         }
       })) {
         logger.debug('Origin validation passed via Referer', {
@@ -123,15 +123,10 @@ export const originMiddleware = (
   const normalizedOrigin = origin.trim().replace(/\/$/, '');
   const normalizedAllowed = allowedOrigins.map(o => o.trim().replace(/\/$/, ''));
 
-  // Check if origin is in allowed list (exact match or contains)
+  // Check if origin is in allowed list (strict match only)
   const isAllowed = normalizedAllowed.some(allowed => {
     if (allowed === '*') return true;
-    if (normalizedOrigin === allowed) return true;
-    // Also check if origin contains the allowed domain (for subdomains)
-    if (normalizedOrigin.includes(allowed) || allowed.includes(normalizedOrigin)) {
-      return true;
-    }
-    return false;
+    return normalizedOrigin === allowed;
   });
 
   if (!isAllowed) {
@@ -147,7 +142,7 @@ export const originMiddleware = (
     });
     throw new ApiError(
       HTTP_STATUS.FORBIDDEN,
-      `You are not allowed to access this resource. Origin '${normalizedOrigin}' is not in the allowed list. Allowed origins: ${normalizedAllowed.join(', ')}`
+      "You are not allowed to access this resource from this origin."
     );
   }
 
