@@ -54,3 +54,5 @@ backups/
 tmp/
 temp/
 *.tmp
+
+uploads
