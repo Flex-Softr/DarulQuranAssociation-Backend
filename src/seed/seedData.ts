@@ -42,9 +42,9 @@ export const seedConfig: SeedConfig = {
   admin: {
     fullName: process.env.SEED_ADMIN_NAME || 'Admin User',
     email: process.env.SEED_ADMIN_EMAIL || 'admin@darunquran.com',
-    phone: process.env.SEED_ADMIN_PHONE,
+    phone: process.env.SEED_ADMIN_PHONE || undefined,
     password: process.env.SEED_ADMIN_PASSWORD || 'Admin@123',
-    address: process.env.SEED_ADMIN_ADDRESS,
+    address: process.env.SEED_ADMIN_ADDRESS || undefined,
     pictures: process.env.SEED_ADMIN_PICTURES
       ? process.env.SEED_ADMIN_PICTURES.split(',').map((item) => item.trim()).filter(Boolean)
       : [],
@@ -53,7 +53,7 @@ export const seedConfig: SeedConfig = {
     {
       fullName: 'Editor User',
       email: 'editor@example.com',
-      phone: process.env.SEED_SAMPLE_EDITOR_PHONE,
+      phone: process.env.SEED_SAMPLE_EDITOR_PHONE || undefined,
       password: 'Editor@123',
       role: 'editor', // Use ROLES.EDITOR in seedUsers.ts
       address: '123 Editor Street',
@@ -62,7 +62,7 @@ export const seedConfig: SeedConfig = {
     {
       fullName: 'Donor User',
       email: 'donor@example.com',
-      phone: process.env.SEED_SAMPLE_DONOR_PHONE,
+      phone: process.env.SEED_SAMPLE_DONOR_PHONE || undefined,
       password: 'Donor@123',
       role: 'donors', // Use ROLES.DONORS in seedUsers.ts
       address: '456 Donor Avenue',
@@ -71,7 +71,7 @@ export const seedConfig: SeedConfig = {
     {
       fullName: 'Additional Admin',
       email: 'admin@example.com',
-      phone: process.env.SEED_SAMPLE_ADMIN_PHONE,
+      phone: process.env.SEED_SAMPLE_ADMIN_PHONE || undefined,
       password: 'Admin@123',
       role: 'admin', // Use ROLES.ADMIN in seedUsers.ts
       address: '789 Admin Plaza',

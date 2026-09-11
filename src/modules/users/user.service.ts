@@ -24,9 +24,9 @@ export class UserService {
   ): Promise<IUser> {
     const { fullName, email, phone, password, role, address, pictures, avatar } = input;
 
-    const sanitizedEmail = email?.trim().toLowerCase();
-    const sanitizedPhone = phone?.trim();
-    const sanitizedAddress = address?.trim();
+    const sanitizedEmail = email?.trim().toLowerCase() || undefined;
+    const sanitizedPhone = phone?.trim() || undefined;
+    const sanitizedAddress = address?.trim() || undefined;
 
     if (!sanitizedEmail && !sanitizedPhone) {
       throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'Either email or phone must be provided');

@@ -48,7 +48,15 @@ export const seedUsers = async (): Promise<void> => {
         logger.warn('⚠️  IMPORTANT: Change the default admin password in production!');
       } else {
         const identifier = seedConfig.admin.email || seedConfig.admin.phone || 'N/A';
-        logger.info(`ℹ️  Admin user already exists: ${identifier}`);
+        existingAdmin.role = ROLES.ADMIN;
+        if (seedConfig.admin.password) {
+          const { hashPassword } = await import('../modules/common/utils/hash');
+          existingAdmin.passwordHash = await hashPassword(seedConfig.admin.password);
+          await existingAdmin.save();
+          logger.info(`ℹ️  Admin user updated: ${identifier}`);
+        } else {
+          logger.info(`ℹ️  Admin user already exists: ${identifier}`);
+        }
       }
     }
 
