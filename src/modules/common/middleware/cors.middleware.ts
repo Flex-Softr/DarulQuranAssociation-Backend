@@ -47,6 +47,11 @@ const standardCorsMiddleware = cors({
       return callback(null, true);
     }
 
+    // In non-production, automatically allow any localhost or 127.0.0.1 origin
+    if (config.nodeEnv !== 'production' && /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) {
+      return callback(null, true);
+    }
+
     const normalizedRequest = normalizeOrigin(origin);
     const allowed = config.cors.origin.some(
       (o) => normalizeOrigin(o) === normalizedRequest

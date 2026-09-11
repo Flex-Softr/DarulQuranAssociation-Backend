@@ -3,23 +3,18 @@ import { galleryCategoryController } from './gallery-category.controller';
 import { authMiddleware } from '../common/middleware/auth.middleware';
 import { validate } from '../common/middleware/validate.middleware';
 import { createGalleryCategorySchema, updateGalleryCategorySchema } from './gallery-category.schema';
-import { originMiddleware } from '../common/middleware/origin.middleware';
-import { tokenMiddleware } from '../common/middleware/token.middleware';
 
 const router = Router();
 
 // Get all gallery categories (admin)
-router.get('/admin', galleryCategoryController.getAllGalleryCategories);
+router.get('/admin', authMiddleware, galleryCategoryController.getAllGalleryCategories);
 // Get single gallery category by ID (admin)
-router.get('/admin/:id', galleryCategoryController.getGalleryCategoryById);
+router.get('/admin/:id', authMiddleware, galleryCategoryController.getGalleryCategoryById);
 
-// All routes require authentication
-// router.use(authMiddleware);
-
-// Get all gallery categories with pagination and search
-router.get('/', tokenMiddleware, galleryCategoryController.getAllGalleryCategories);
-// Get single gallery category by ID
-router.get('/:id', tokenMiddleware, galleryCategoryController.getGalleryCategoryById);
+// Get all gallery categories with pagination and search (public)
+router.get('/', galleryCategoryController.getAllGalleryCategories);
+// Get single gallery category by ID (public)
+router.get('/:id', galleryCategoryController.getGalleryCategoryById);
 
 router.use(authMiddleware);
 

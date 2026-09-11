@@ -4,20 +4,19 @@ import { authMiddleware } from '../common/middleware/auth.middleware';
 import { validate } from '../common/middleware/validate.middleware';
 import { createGalleryItemSchema, updateGalleryItemSchema } from './gallery.schema';
 import { upload } from '../uploads/upload.middleware';
-import { tokenMiddleware } from '../common/middleware/token.middleware';
 
 const router = Router();
 
 // Get all gallery items (admin)
-router.get('/admin',  galleryController.getAllGalleryItems);
+router.get('/admin', authMiddleware, galleryController.getAllGalleryItems);
 // Get single gallery item by ID (admin)
-router.get('/admin/:id', galleryController.getGalleryItemById);
+router.get('/admin/:id', authMiddleware, galleryController.getGalleryItemById);
 
 // Get all gallery items (public)
-router.get('/', tokenMiddleware, galleryController.getAllGalleryItems);
+router.get('/', galleryController.getAllGalleryItems);
 
 // Get single gallery item (public)
-router.get('/:id', tokenMiddleware, galleryController.getGalleryItemById);
+router.get('/:id', galleryController.getGalleryItemById);
 
 // All mutation routes require authentication
 router.use(authMiddleware);

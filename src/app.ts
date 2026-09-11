@@ -18,7 +18,12 @@ const app = express();
 app.set('trust proxy', false);
 
 // Security middleware
-app.use(helmet()); // Sets various HTTP headers for security
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+    contentSecurityPolicy: config.nodeEnv === 'production' ? undefined : false,
+  })
+); // Sets various HTTP headers for security
 app.use(corsMiddleware); // Dynamic CORS configuration
 app.use(expressMongoSanitize()); // Prevents NoSQL injection attacks
 

@@ -4,25 +4,24 @@ import { authMiddleware } from '../common/middleware/auth.middleware';
 import { validate } from '../common/middleware/validate.middleware';
 import { createDonationCategorySchema, updateDonationCategorySchema } from './donation-category.schema';
 import { upload } from '../uploads/upload.middleware';
-import { tokenMiddleware } from '../common/middleware/token.middleware';
 
 const router = Router();
 
 // Get all donation categories (admin)
-router.get('/admin', tokenMiddleware, donationCategoryController.getAllDonationCategories);
+router.get('/admin', authMiddleware, donationCategoryController.getAllDonationCategories);
 // Get donation category by slug (admin)
-router.get('/admin/:slug', tokenMiddleware, donationCategoryController.getDonationCategoryBySlug);
+router.get('/admin/:slug', authMiddleware, donationCategoryController.getDonationCategoryBySlug);
 // Get single donation category by ID (admin)
-router.get('/admin/:id', tokenMiddleware, donationCategoryController.getDonationCategoryById);
+router.get('/admin/:id', authMiddleware, donationCategoryController.getDonationCategoryById);
 
 // Get all donation categories (public)
-router.get('/',tokenMiddleware, donationCategoryController.getAllDonationCategories);
+router.get('/', donationCategoryController.getAllDonationCategories);
 
 // Get donation category by slug (public)
-router.get('/:slug', tokenMiddleware, donationCategoryController.getDonationCategoryBySlug);
+router.get('/:slug', donationCategoryController.getDonationCategoryBySlug);
 
 // Get single donation category by ID (public)
-router.get('/:id', tokenMiddleware, donationCategoryController.getDonationCategoryById);
+router.get('/:id', donationCategoryController.getDonationCategoryById);
 
 // All mutation routes require authentication
 router.use(authMiddleware);
